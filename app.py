@@ -31,19 +31,20 @@ from database import init_db, fetch_all, fetch_one, insert_mandate, update_manda
 from security import generate_uid, generate_signature, verify_signature
 from generator import generate_all
 
-app = Flask(__name__)
 
-# ClÃ© de session Flask
+app = Flask(__name__)
 app.secret_key = FLASK_SECRET
 
-# Important derriÃ¨re Render / proxy HTTPS
+# Important derrière Render / proxy HTTPS
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
-# Configuration session / cookies
-# SESSION_COOKIE_SECURE=True en production HTTPS
-# En local, tu peux repasser Ã  False si besoin
-IS_RENDER = os.getenv("RENDER", "").lower() == "true" or os.getenv("RENDER_EXTERNAL_URL") is not None
+# Détection environnement Render
+IS_RENDER = (
+    os.getenv("RENDER", "").lower() == "true"
+    or os.getenv("RENDER_EXTERNAL_URL") is not None
+)
 
+# Configuration session / cookies
 app.config.update(
     SECRET_KEY=FLASK_SECRET,
     SESSION_COOKIE_NAME="ong_rn_session",
@@ -60,7 +61,7 @@ init_db()
 
 def is_safe_next_url(target: str) -> bool:
     """
-    EmpÃªche les redirections externes malveillantes.
+    Empêche les redirections externes malveillantes.
     """
     if not target:
         return False
@@ -128,7 +129,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("DÃ©connexion effectuÃ©e.", "success")
+    flash("Déconnexion effectuée.", "success")
     return redirect(url_for("login"))
 
 
@@ -137,7 +138,7 @@ def logout():
 def dashboard():
     mandates = fetch_all("SELECT * FROM mandates ORDER BY id DESC")
     total = len(mandates)
-    by_status = {s: 0 for s in DEFAULT_STATUSES}
+    by_status = {status: 0 for status in DEFAULT_STATUSES}
 
     for mandate in mandates:
         if mandate["statut"] in by_status:
@@ -174,13 +175,13 @@ def create_mandate():
             "adresse": request.form.get("adresse", "").strip(),
             "telephone": request.form.get("telephone", "").strip(),
             "email": request.form.get("email", "").strip(),
-            "fonction": request.form.get("fonction", "DÃ©lÃ©guÃ©").strip(),
+            "fonction": request.form.get("fonction", "Délégué").strip(),
             "zone_intervention": request.form.get("zone_intervention", "").strip(),
             "date_emission": request.form.get("date_emission", "").strip(),
             "date_expiration": request.form.get("date_expiration", "").strip(),
             "statut": request.form.get("statut", "actif").strip(),
             "ville_signature": request.form.get("ville_signature", "Strasbourg").strip(),
-            "pays": request.form.get("pays", "BÃ©nin").strip(),
+            "pays": request.form.get("pays", "Bénin").strip(),
             "preferences_affichage": request.form.get("preferences_affichage", "").strip(),
             "notes": request.form.get("notes", "").strip(),
         }
@@ -196,7 +197,7 @@ def create_mandate():
         payload["pdf_path"] = str(pdf)
 
         insert_mandate(payload)
-        flash("Mandat crÃ©Ã© et documents gÃ©nÃ©rÃ©s.", "success")
+        flash("Mandat créé et documents générés.", "success")
         return redirect(url_for("dashboard"))
 
     return render_template("form.html", mode="create", mandate=None)
@@ -217,13 +218,13 @@ def edit_mandate(reference):
             "adresse": request.form.get("adresse", "").strip(),
             "telephone": request.form.get("telephone", "").strip(),
             "email": request.form.get("email", "").strip(),
-            "fonction": request.form.get("fonction", "DÃ©lÃ©guÃ©").strip(),
+            "fonction": request.form.get("fonction", "Délégué").strip(),
             "zone_intervention": request.form.get("zone_intervention", "").strip(),
             "date_emission": request.form.get("date_emission", "").strip(),
             "date_expiration": request.form.get("date_expiration", "").strip(),
             "statut": request.form.get("statut", "actif").strip(),
             "ville_signature": request.form.get("ville_signature", "Strasbourg").strip(),
-            "pays": request.form.get("pays", "BÃ©nin").strip(),
+            "pays": request.form.get("pays", "Bénin").strip(),
             "preferences_affichage": request.form.get("preferences_affichage", "").strip(),
             "notes": request.form.get("notes", "").strip(),
         }
@@ -240,7 +241,7 @@ def edit_mandate(reference):
         if not updated:
             abort(404)
 
-        flash("Mandat modifiÃ© et documents rÃ©gÃ©nÃ©rÃ©s.", "success")
+        flash("Mandat modifié et documents régénérés.", "success")
         return redirect(url_for("dashboard"))
 
     return render_template("form.html", mode="edit", mandate=mandate)
@@ -273,7 +274,7 @@ def update_status(reference):
     if not updated:
         abort(404)
 
-    flash("Statut mis Ã  jour et document rÃ©gÃ©nÃ©rÃ©.", "success")
+    flash("Statut mis à jour et document régénéré.", "success")
     return redirect(url_for("dashboard"))
 
 
@@ -298,7 +299,7 @@ def regen(reference):
     if not updated:
         abort(404)
 
-    flash("Documents rÃ©gÃ©nÃ©rÃ©s.", "success")
+    flash("Documents régénérés.", "success")
     return redirect(url_for("dashboard"))
 
 
@@ -309,7 +310,7 @@ def delete_mandate(reference):
     if not deleted:
         abort(404)
 
-    flash("Mandat supprimÃ©.", "success")
+    flash("Mandat supprimé.", "success")
     return redirect(url_for("dashboard"))
 
 
