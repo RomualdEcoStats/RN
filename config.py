@@ -12,7 +12,7 @@ STATIC_DIR = BASE_DIR / "static"
 DB_PATH = DATA_DIR / "registry.db"
 
 SECRET_KEY = os.getenv("MANDATE_SECRET_KEY", "CHANGE_ME_TO_A_LONG_RANDOM_SECRET")
-FLASK_SECRET = "RN_SUPER_SECRET_2026_ULTRA_STABLE"
+FLASK_SECRET = os.getenv("FLASK_SECRET", "CHANGE_ME_TOO")
 
 ORG_NAME = "ONG Renaître de Nouveau"
 ORG_SHORT = "ONG-RN"
@@ -29,8 +29,8 @@ COORDINATOR_TITLE = "Superviseur / Coordinateur national au Bénin"
 
 BASE_VERIFY_URL = os.getenv("BASE_VERIFY_URL", "https://verify.renaitredenouveau.org/verify")
 
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 
 DEFAULT_STATUSES = ["actif", "suspendu", "revoque", "expire"]
 
