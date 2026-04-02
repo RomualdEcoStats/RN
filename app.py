@@ -316,18 +316,39 @@ def delete_mandate(reference):
 
 @app.route("/verify")
 def verify():
-    reference = request.args.get("ref", "").strip()
-    uid = request.args.get("uid", "").strip()
-    sig = request.args.get("sig", "").strip()
+    from urllib.parse import unquote
 
-    mandate = fetch_one("SELECT * FROM mandates WHERE reference = ?", (reference,))
+    reference = request.args.get("ref", "")
+    uid = request.args.get("uid", "")
+    sig = request.args.get("sig", "")
+
+    reference = unquote(reference).strip()
+    uid = unquote(uid).strip()
+    sig = unquote(sig).strip()
+
+    print("VERIFY_REF_RAW:", repr(reference))
+    print("VERIFY_UID_RAW:", repr(uid))
+    print("VERIFY_SIG_RAW:", repr(sig))
+
+    mandate = fetch_one(
+        "SELECT * FROM mandates WHERE TRIM(reference) = TRIM(?)",
+        (reference,)
+    )
+
+    all_refs = fetch_all("SELECT reference FROM mandates ORDER BY id DESC")
+    print("DB_REFERENCES:", [row["reference"] for row in all_refs])
+
     valid = False
 
     if mandate:
-        valid = (
-            uid == mandate["mandate_uid"]
-            and verify_signature(reference, uid, sig)
-        )
+        if uid and sig:
+            valid = (
+                uid == mandate["mandate_uid"]
+                and verify_signature(reference, uid, sig)
+            )
+        else:
+            # Si ref seule est fournie, on montre le mandat trouvé sans valider la signature.
+            valid = True
 
     return render_template("verify.html", mandate=mandate, valid=valid, ref=reference)
 
