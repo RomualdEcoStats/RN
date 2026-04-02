@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ ORG_NAME }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="logo">
+    <div>
+      <div class="title">{{ ORG_NAME }}</div>
+      <div class="subtitle">Système de gestion des attestations de mandat</div>
+    </div>
+  </div>
+  <nav class="nav">
+    {% if session.get('admin_logged_in') %}
+    <a href="{{ url_for('dashboard') }}">Tableau de bord</a>
+    <a href="{{ url_for('create_mandate') }}">Nouveau mandat</a>
+    <a href="{{ url_for('logout') }}">Déconnexion</a>
+    {% endif %}
+    <a href="{{ ORG_WEBSITE }}" target="_blank">Site ONG</a>
+  </nav>
+</header>
+
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div>{{ ORG_NAME }} — {{ ORG_EMAIL }} — {{ ORG_PHONE }}</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero">
+  <div>
+    <h1>{% if mode == 'create' %}Créer un mandat{% else %}Modifier un mandat{% endif %}</h1>
+    <p>Toutes les modifications régénèrent automatiquement le PDF, le DOCX et le QR code.</p>
+  </div>
+</section>
+
+<form method="post" class="card form-grid">
+  {% if mode == 'create' %}
+  <label>Préfixe de référence
+    <input name="reference_prefix" value="RN">
+  </label>
+  <label>Référence complète (optionnel)
+    <input name="reference" placeholder="RN/2026/ONG-RN/PCA/CSA/0003">
+  </label>
+  {% endif %}
+  <label>Civilité
+    <input name="civilite" value="{{ mandate['civilite'] if mandate else '' }}">
+  </label>
+  <label>Nom
+    <input name="nom" required value="{{ mandate['nom'] if mandate else '' }}">
+  </label>
+  <label>Prénom
+    <input name="prenom" required value="{{ mandate['prenom'] if mandate else '' }}">
+  </label>
+  <label>Adresse
+    <input name="adresse" value="{{ mandate['adresse'] if mandate else '' }}">
+  </label>
+  <label>Téléphone
+    <input name="telephone" value="{{ mandate['telephone'] if mandate else '' }}">
+  </label>
+  <label>Email
+    <input name="email" type="email" value="{{ mandate['email'] if mandate else '' }}">
+  </label>
+  <label>Fonction
+    <input name="fonction" required value="{{ mandate['fonction'] if mandate else 'Délégué' }}">
+  </label>
+  <label>Zone d’intervention
+    <input name="zone_intervention" required value="{{ mandate['zone_intervention'] if mandate else '' }}">
+  </label>
+  <label>Date d’émission
+    <input name="date_emission" type="date" required value="{{ mandate['date_emission'] if mandate else '' }}">
+  </label>
+  <label>Date d’expiration
+    <input name="date_expiration" type="date" value="{{ mandate['date_expiration'] if mandate else '' }}">
+  </label>
+  <label>Statut
+    <select name="statut">
+      {% for s in DEFAULT_STATUSES %}
+      <option value="{{ s }}" {% if mandate and mandate['statut']==s %}selected{% elif not mandate and s=='actif' %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Ville de signature
+    <input name="ville_signature" value="{{ mandate['ville_signature'] if mandate else 'Strasbourg' }}">
+  </label>
+  <label>Pays
+    <input name="pays" value="{{ mandate['pays'] if mandate else 'Bénin' }}">
+  </label>
+  <label>Préférences d’affichage
+    <input name="preferences_affichage" value="{{ mandate['preferences_affichage'] if mandate else '' }}">
+  </label>
+  <label class="full">Notes
+    <textarea name="notes" rows="4">{{ mandate['notes'] if mandate else '' }}</textarea>
+  </label>
+  <div class="full actions">
+    <button type="submit" class="btn primary">{% if mode == 'create' %}Créer le mandat{% else %}Enregistrer et régénérer{% endif %}</button>
+    <a class="btn" href="{{ url_for('dashboard') }}">Retour</a>
+  </div>
+</form>
+{% endblock %}

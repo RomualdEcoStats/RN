@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-card">
+  <h1>Connexion administrateur</h1>
+  <form method="post" class="grid one">
+    <label>Identifiant
+      <input name="username" required>
+    </label>
+    <label>Mot de passe
+      <input type="password" name="password" required>
+    </label>
+    <button type="submit" class="btn primary">Se connecter</button>
+  </form>
+  <p class="muted">Par défaut : admin / admin123. À changer avant la mise en ligne.</p>
+</div>
+{% endblock %}

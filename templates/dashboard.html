@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero">
+  <div>
+    <h1>Tableau de bord institutionnel</h1>
+    <p>Création, édition, régénération et vérification sécurisée des mandats.</p>
+  </div>
+  <a class="btn primary" href="{{ url_for('create_mandate') }}">+ Nouveau mandat</a>
+</section>
+
+<section class="stats">
+  <div class="stat"><strong>{{ total }}</strong><span>Total</span></div>
+  {% for s in DEFAULT_STATUSES %}
+  <div class="stat"><strong>{{ by_status[s] }}</strong><span>{{ s|capitalize }}</span></div>
+  {% endfor %}
+</section>
+
+<section class="card">
+  <table class="registry-table">
+    <thead>
+      <tr>
+        <th>Référence</th>
+        <th>Délégué</th>
+        <th>Zone / Fonction</th>
+        <th>Dates</th>
+        <th>Statut</th>
+        <th>Documents</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in mandates %}
+      <tr>
+        <td>
+          <div class="mono">{{ m['reference'] }}</div>
+          <div class="tiny">UID: {{ m['mandate_uid'][:10] }}…</div>
+        </td>
+        <td>
+          <strong>{{ m['prenom'] }} {{ m['nom'] }}</strong>
+          <div class="tiny">{{ m['telephone'] or '' }}</div>
+          <div class="tiny">{{ m['email'] or '' }}</div>
+        </td>
+        <td>
+          <div>{{ m['zone_intervention'] }}</div>
+          <div class="tiny">{{ m['fonction'] }}</div>
+        </td>
+        <td>
+          <div>{{ m['date_emission'] }}</div>
+          <div class="tiny">→ {{ m['date_expiration'] or 'non précisée' }}</div>
+        </td>
+        <td>
+          <span class="badge {{ m['statut'] }}">{{ m['statut'] }}</span>
+          <form method="post" action="{{ url_for('update_status', reference=m['reference']) }}" class="inline-form">
+            <select name="statut">
+              {% for s in DEFAULT_STATUSES %}
+              <option value="{{ s }}" {% if m['statut']==s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn small">Mettre à jour</button>
+          </form>
+        </td>
+        <td class="docs">
+          <a href="{{ url_for('open_document', kind='pdf', reference=m['reference']) }}" target="_blank">PDF</a>
+          <a href="{{ url_for('open_document', kind='docx', reference=m['reference']) }}" target="_blank">DOCX</a>
+          <a href="{{ url_for('open_document', kind='qr', reference=m['reference']) }}" target="_blank">QR</a>
+        </td>
+        <td class="docs">
+          <a href="{{ url_for('edit_mandate', reference=m['reference']) }}">Éditer</a>
+          <a href="{{ url_for('regen', reference=m['reference']) }}">Régénérer</a>
+          <form method="post" action="{{ url_for('delete_mandate', reference=m['reference']) }}" onsubmit="return confirm('Supprimer ce mandat ?');">
+            <button class="link-button danger">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7">Aucun mandat enregistré.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

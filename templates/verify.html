@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="verify-card">
+  <h1>Vérification d’authenticité</h1>
+  {% if mandate and valid %}
+    <div class="flash success">Mandat authentique — signature numérique valide.</div>
+    <div class="verify-grid">
+      <div><strong>Référence</strong><span>{{ mandate['reference'] }}</span></div>
+      <div><strong>Délégué</strong><span>{{ mandate['prenom'] }} {{ mandate['nom'] }}</span></div>
+      <div><strong>Fonction</strong><span>{{ mandate['fonction'] }}</span></div>
+      <div><strong>Zone</strong><span>{{ mandate['zone_intervention'] }}</span></div>
+      <div><strong>Date d’émission</strong><span>{{ mandate['date_emission'] }}</span></div>
+      <div><strong>Date d’expiration</strong><span>{{ mandate['date_expiration'] or 'non précisée' }}</span></div>
+      <div><strong>Statut</strong><span class="badge {{ mandate['statut'] }}">{{ mandate['statut'] }}</span></div>
+      <div><strong>UID</strong><span class="mono">{{ mandate['mandate_uid'] }}</span></div>
+    </div>
+  {% elif mandate %}
+    <div class="flash danger">Référence existante mais signature numérique invalide.</div>
+  {% else %}
+    <div class="flash danger">Aucun mandat correspondant à la référence {{ ref }}.</div>
+  {% endif %}
+</section>
+{% endblock %}

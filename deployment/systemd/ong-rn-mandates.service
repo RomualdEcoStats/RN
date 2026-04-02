@@ -1,0 +1,15 @@
+[Unit]
+Description=ONG RN Mandates App
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/var/www/ong_attestation_v3_complete
+Environment=MANDATE_SECRET_KEY=change_me
+Environment=FLASK_SECRET=change_me
+Environment=BASE_VERIFY_URL=https://www.renaitredenouveau.org/verify
+ExecStart=/usr/bin/gunicorn -w 2 -b 127.0.0.1:5000 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
