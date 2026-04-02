@@ -27,7 +27,7 @@ PRESIDENT_NAME = os.getenv("PRESIDENT_NAME", "Romuald HOUNYEME")
 PRESIDENT_TITLE = "Président du Conseil d’Administration (PCA)"
 COORDINATOR_TITLE = "Superviseur / Coordinateur national au Bénin"
 
-BASE_VERIFY_URL = os.getenv("BASE_VERIFY_URL", "https://www.renaitredenouveau.org/verify")
+BASE_VERIFY_URL = os.getenv("BASE_VERIFY_URL", "https://verify.renaitredenouveau.org/verify")
 
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
