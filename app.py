@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 from functools import wraps
 from datetime import timedelta
 import os
@@ -33,15 +33,15 @@ from generator import generate_all
 
 app = Flask(__name__)
 
-# Clé de session Flask
+# ClÃ© de session Flask
 app.secret_key = FLASK_SECRET
 
-# Important derrière Render / proxy HTTPS
+# Important derriÃ¨re Render / proxy HTTPS
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
 # Configuration session / cookies
 # SESSION_COOKIE_SECURE=True en production HTTPS
-# En local, tu peux repasser à False si besoin
+# En local, tu peux repasser Ã  False si besoin
 IS_RENDER = os.getenv("RENDER", "").lower() == "true" or os.getenv("RENDER_EXTERNAL_URL") is not None
 
 app.config.update(
@@ -60,7 +60,7 @@ init_db()
 
 def is_safe_next_url(target: str) -> bool:
     """
-    Empêche les redirections externes malveillantes.
+    EmpÃªche les redirections externes malveillantes.
     """
     if not target:
         return False
@@ -101,14 +101,17 @@ def favicon():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "").strip()
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
         next_url = request.args.get("next", "")
 
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        if (
+            username.strip() == str(ADMIN_USERNAME).strip()
+            and password.strip() == str(ADMIN_PASSWORD).strip()
+        ):
             session.clear()
             session["admin_logged_in"] = True
-            session["admin_username"] = username
+            session["admin_username"] = username.strip()
             session.permanent = True
 
             flash("Connexion réussie.", "success")
@@ -125,7 +128,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("Déconnexion effectuée.", "success")
+    flash("DÃ©connexion effectuÃ©e.", "success")
     return redirect(url_for("login"))
 
 
@@ -171,13 +174,13 @@ def create_mandate():
             "adresse": request.form.get("adresse", "").strip(),
             "telephone": request.form.get("telephone", "").strip(),
             "email": request.form.get("email", "").strip(),
-            "fonction": request.form.get("fonction", "Délégué").strip(),
+            "fonction": request.form.get("fonction", "DÃ©lÃ©guÃ©").strip(),
             "zone_intervention": request.form.get("zone_intervention", "").strip(),
             "date_emission": request.form.get("date_emission", "").strip(),
             "date_expiration": request.form.get("date_expiration", "").strip(),
             "statut": request.form.get("statut", "actif").strip(),
             "ville_signature": request.form.get("ville_signature", "Strasbourg").strip(),
-            "pays": request.form.get("pays", "Bénin").strip(),
+            "pays": request.form.get("pays", "BÃ©nin").strip(),
             "preferences_affichage": request.form.get("preferences_affichage", "").strip(),
             "notes": request.form.get("notes", "").strip(),
         }
@@ -193,7 +196,7 @@ def create_mandate():
         payload["pdf_path"] = str(pdf)
 
         insert_mandate(payload)
-        flash("Mandat créé et documents générés.", "success")
+        flash("Mandat crÃ©Ã© et documents gÃ©nÃ©rÃ©s.", "success")
         return redirect(url_for("dashboard"))
 
     return render_template("form.html", mode="create", mandate=None)
@@ -214,13 +217,13 @@ def edit_mandate(reference):
             "adresse": request.form.get("adresse", "").strip(),
             "telephone": request.form.get("telephone", "").strip(),
             "email": request.form.get("email", "").strip(),
-            "fonction": request.form.get("fonction", "Délégué").strip(),
+            "fonction": request.form.get("fonction", "DÃ©lÃ©guÃ©").strip(),
             "zone_intervention": request.form.get("zone_intervention", "").strip(),
             "date_emission": request.form.get("date_emission", "").strip(),
             "date_expiration": request.form.get("date_expiration", "").strip(),
             "statut": request.form.get("statut", "actif").strip(),
             "ville_signature": request.form.get("ville_signature", "Strasbourg").strip(),
-            "pays": request.form.get("pays", "Bénin").strip(),
+            "pays": request.form.get("pays", "BÃ©nin").strip(),
             "preferences_affichage": request.form.get("preferences_affichage", "").strip(),
             "notes": request.form.get("notes", "").strip(),
         }
@@ -237,7 +240,7 @@ def edit_mandate(reference):
         if not updated:
             abort(404)
 
-        flash("Mandat modifié et documents régénérés.", "success")
+        flash("Mandat modifiÃ© et documents rÃ©gÃ©nÃ©rÃ©s.", "success")
         return redirect(url_for("dashboard"))
 
     return render_template("form.html", mode="edit", mandate=mandate)
@@ -270,7 +273,7 @@ def update_status(reference):
     if not updated:
         abort(404)
 
-    flash("Statut mis à jour et document régénéré.", "success")
+    flash("Statut mis Ã  jour et document rÃ©gÃ©nÃ©rÃ©.", "success")
     return redirect(url_for("dashboard"))
 
 
@@ -295,7 +298,7 @@ def regen(reference):
     if not updated:
         abort(404)
 
-    flash("Documents régénérés.", "success")
+    flash("Documents rÃ©gÃ©nÃ©rÃ©s.", "success")
     return redirect(url_for("dashboard"))
 
 
@@ -306,7 +309,7 @@ def delete_mandate(reference):
     if not deleted:
         abort(404)
 
-    flash("Mandat supprimé.", "success")
+    flash("Mandat supprimÃ©.", "success")
     return redirect(url_for("dashboard"))
 
 
