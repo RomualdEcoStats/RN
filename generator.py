@@ -28,6 +28,8 @@ from config import (
     PRESIDENT_SIGNATURE_PATH,
     STAMP_PATH,
 )
+from security import generate_signature
+
 
 BODY_INTRO = (
     "Nous soussigné {org_name}, inscrite au Registre des Associations {registre}, "
@@ -80,7 +82,8 @@ def verify_url(reference: str, uid: str, sig: str) -> str:
 def generate_qr(reference: str, uid: str, sig: str) -> Path:
     QR_DIR.mkdir(parents=True, exist_ok=True)
     path = QR_DIR / f"{sanitize_reference(reference)}_qr.png"
-    img = qrcode.make(verify_url(reference, uid, sig))
+    qr_url = verify_url(reference, uid, sig)
+    img = qrcode.make(qr_url)
     img.save(path)
     return path
 
@@ -328,6 +331,13 @@ def _wrap_text(text: str, width: int) -> list[str]:
 
 
 def generate_all(payload: dict):
+    # Recalcul systématique de la signature pour garantir
+    # une parfaite cohérence entre QR, PDF et DOCX.
+    payload["signature_token"] = generate_signature(
+        payload["reference"],
+        payload["mandate_uid"],
+    )
+
     qr = generate_qr(payload["reference"], payload["mandate_uid"], payload["signature_token"])
     docx = generate_docx(payload, qr)
     pdf = generate_pdf(payload, qr)
