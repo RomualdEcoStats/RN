@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 from urllib.parse import urlencode
 
 import qrcode
@@ -35,19 +35,12 @@ from config import (
 from security import generate_signature
 
 
-# =========================
-# Références officielles ONG
-# =========================
 AMALIA_REFERENCE = "Référence AMALIA : A2019STR000236 – Volume 97 – Folio 229"
-ONG_SIEGE = "Siège : 24 Rue de la Niederbourg, 67400 Illkirch-Graffenstaden"
+ONG_SIEGE = "Siège : 24 Rue de la Niederbourg, 67400 Illkirch-Graffenstaden, France"
 ONG_REPRESENTATION = "Représentée par Monsieur Romuald HOUNYEME, Président"
 
-
-# =========================
-# Style institutionnel
-# =========================
-PRIMARY_COLOR = RGBColor(11, 79, 156)       # bleu institutionnel
-ACCENT_COLOR = RGBColor(216, 166, 42)       # doré
+PRIMARY_COLOR = RGBColor(11, 79, 156)
+ACCENT_COLOR = RGBColor(216, 166, 42)
 TEXT_COLOR = RGBColor(34, 34, 34)
 
 PDF_PRIMARY = colors.HexColor("#0B4F9C")
@@ -60,10 +53,6 @@ def sanitize_reference(ref: str) -> str:
 
 
 def verify_url(reference: str, uid: str, sig: str) -> str:
-    """
-    Construit une URL de vérification robuste en encodant correctement
-    tous les paramètres de requête.
-    """
     query = urlencode(
         {
             "ref": reference,
@@ -106,9 +95,6 @@ def build_text(payload: dict) -> dict:
     }
 
 
-# =========================
-# Texte officiel du mandat
-# =========================
 def mandate_intro_lines(payload: dict) -> list[str]:
     fmt = build_text(payload)
     return [
@@ -180,9 +166,6 @@ DECLARATION_TEXT = (
 )
 
 
-# =========================
-# Helpers DOCX
-# =========================
 def _set_cell_shading(cell, fill: str):
     tc_pr = cell._tc.get_or_add_tcPr()
     shd = OxmlElement("w:shd")
@@ -248,9 +231,6 @@ def _add_bullet(doc: Document, text: str):
     return p
 
 
-# =========================
-# DOCX
-# =========================
 def generate_docx(payload: dict, qr_path: Path) -> Path:
     DOCX_DIR.mkdir(parents=True, exist_ok=True)
     ref = payload["reference"]
@@ -263,7 +243,6 @@ def generate_docx(payload: dict, qr_path: Path) -> Path:
     section.left_margin = Mm(16)
     section.right_margin = Mm(16)
 
-    # En-tête institutionnel
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     if LOGO_PATH.exists():
@@ -274,7 +253,6 @@ def generate_docx(payload: dict, qr_path: Path) -> Path:
     _add_centered_text(doc, ONG_SIEGE, size=9, bold=False, color=TEXT_COLOR)
     _add_centered_text(doc, ONG_REPRESENTATION, size=9, bold=False, color=TEXT_COLOR)
 
-    # Titre encadré
     title_table = doc.add_table(rows=1, cols=1)
     title_table.alignment = WD_TABLE_ALIGNMENT.CENTER
     title_cell = title_table.rows[0].cells[0]
@@ -296,20 +274,32 @@ def generate_docx(payload: dict, qr_path: Path) -> Path:
     rr.font.size = Pt(9.5)
     rr.font.color.rgb = TEXT_COLOR
 
-    # NOTE :
-    # python-docx ne gère pas de filigrane fiable nativement comme Word/LibreOffice ;
-    # le rendu PDF ci-dessous comporte en revanche un vrai filigrane logo.
     if LOGO_PATH.exists():
         wp = doc.add_paragraph()
         wp.alignment = WD_ALIGN_PARAGRAPH.CENTER
         wp.add_run().add_picture(str(LOGO_PATH), width=Mm(32))
 
-    # Corps du mandat
-    for line in mandate_intro_lines(payload):
-        if line.strip():
-            _add_normal_paragraph(doc, line, justify=False)
-        else:
+    intro_lines = mandate_intro_lines(payload)
+
+    for idx, line in enumerate(intro_lines):
+        if not line.strip():
             doc.add_paragraph()
+            continue
+
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY if idx not in [7, 8, 13, 15] else WD_ALIGN_PARAGRAPH.LEFT
+
+        run = p.add_run(line)
+        run.font.size = Pt(9.5)
+        run.font.color.rgb = TEXT_COLOR
+
+        if idx == 6:  # nom du délégué
+            run.bold = True
+        if idx == 8:  # contact
+            run.bold = True
+        if idx == 13:  # fonction
+            run.bold = True
+            run.font.color.rgb = PRIMARY_COLOR
 
     _add_article_heading(doc, ARTICLE_1_TITLE)
     _add_normal_paragraph(doc, ARTICLE_1_TEXT)
@@ -348,7 +338,6 @@ def generate_docx(payload: dict, qr_path: Path) -> Path:
     if qr_path.exists():
         qp.add_run().add_picture(str(qr_path), width=Mm(28))
 
-    # Bloc signatures : uniquement Président + cachet
     sign_table = doc.add_table(rows=2, cols=2)
     sign_table.alignment = WD_TABLE_ALIGNMENT.CENTER
 
@@ -371,11 +360,7 @@ def generate_docx(payload: dict, qr_path: Path) -> Path:
     return out
 
 
-# =========================
-# PDF
-# =========================
 def _draw_pdf_header(c: canvas.Canvas, w: float, h: float, ref: str):
-    # Logo principal
     if LOGO_PATH.exists():
         try:
             c.drawImage(
@@ -390,7 +375,6 @@ def _draw_pdf_header(c: canvas.Canvas, w: float, h: float, ref: str):
         except Exception:
             pass
 
-    # Filigrane logo au fond
     if LOGO_PATH.exists():
         try:
             c.saveState()
@@ -408,7 +392,6 @@ def _draw_pdf_header(c: canvas.Canvas, w: float, h: float, ref: str):
         except Exception:
             pass
 
-    # En-tête texte
     c.setFillColor(PDF_PRIMARY)
     c.setFont("Helvetica-Bold", 14)
     c.drawCentredString(w / 2, h - 18 * mm, ORG_NAME.upper())
@@ -419,7 +402,6 @@ def _draw_pdf_header(c: canvas.Canvas, w: float, h: float, ref: str):
     c.drawCentredString(w / 2, h - 28.5 * mm, ONG_SIEGE)
     c.drawCentredString(w / 2, h - 33 * mm, ONG_REPRESENTATION)
 
-    # Titre encadré couleur
     box_x = 24 * mm
     box_y = h - 48 * mm
     box_w = w - 48 * mm
@@ -474,14 +456,24 @@ def generate_pdf(payload: dict, qr_path: Path) -> Path:
 
     y = h - 61 * mm
 
-    # Intro
-    for line in mandate_intro_lines(payload):
-        if line.strip():
-            y = _draw_pdf_wrapped(c, line, 18, y, 115, size=8.9, leading_mm=4.0)
-        else:
+    intro_lines = mandate_intro_lines(payload)
+    for idx, line in enumerate(intro_lines):
+        if not line.strip():
             y -= 2.2 * mm
+            continue
 
-    # Articles
+        font_name = "Helvetica-Bold" if idx in [6, 8, 13] else "Helvetica"
+        font_size = 8.9
+        if idx == 13:
+            c.setFillColor(PDF_PRIMARY)
+        else:
+            c.setFillColor(PDF_TEXT)
+
+        for wrapped in _wrap_text(line, 115):
+            c.setFont(font_name, font_size)
+            c.drawString(18 * mm, y, wrapped)
+            y -= 4.0 * mm
+
     c.setFillColor(PDF_PRIMARY)
     c.setFont("Helvetica-Bold", 9.5)
     c.drawString(18 * mm, y, ARTICLE_1_TITLE)
@@ -534,7 +526,6 @@ def generate_pdf(payload: dict, qr_path: Path) -> Path:
     y -= 4.2 * mm
     y = _draw_pdf_wrapped(c, DECLARATION_TEXT, 18, y, 118, size=8.8, leading_mm=4.0)
 
-    # QR + lien + signature
     if qr_path.exists():
         try:
             c.drawImage(
@@ -549,12 +540,16 @@ def generate_pdf(payload: dict, qr_path: Path) -> Path:
         except Exception:
             pass
 
-    c.setFont("Helvetica", 7.4)
+    c.setFont("Helvetica", 7.1)
     c.setFillColor(PDF_TEXT)
     verif = verify_url(payload["reference"], payload["mandate_uid"], payload["signature_token"])
     y_ver = 34 * mm
-    for i, line in enumerate(_wrap_text("Vérification numérique : " + verif, 90)):
-        c.drawString(46 * mm, y_ver - i * 3.6 * mm, line)
+    x_ver = 46 * mm
+    max_lines = 3
+    wrapped_verif = _wrap_text("Vérification numérique : " + verif, 62)
+    wrapped_verif = wrapped_verif[:max_lines]
+    for i, line in enumerate(wrapped_verif):
+        c.drawString(x_ver, y_ver - i * 3.6 * mm, line)
 
     c.setFont("Helvetica", 8.5)
     c.drawString(118 * mm, 28 * mm, f"Fait à {payload.get('ville_signature', ORG_CITY)}, le {payload.get('date_emission', '')}")
@@ -564,9 +559,9 @@ def generate_pdf(payload: dict, qr_path: Path) -> Path:
             c.drawImage(
                 ImageReader(str(STAMP_PATH)),
                 118 * mm,
-                12 * mm,
-                width=22 * mm,
-                height=22 * mm,
+                10 * mm,
+                width=20 * mm,
+                height=20 * mm,
                 preserveAspectRatio=True,
                 mask="auto",
             )
@@ -578,9 +573,9 @@ def generate_pdf(payload: dict, qr_path: Path) -> Path:
             c.drawImage(
                 ImageReader(str(PRESIDENT_SIGNATURE_PATH)),
                 147 * mm,
-                15 * mm,
-                width=34 * mm,
-                height=13 * mm,
+                14 * mm,
+                width=32 * mm,
+                height=12 * mm,
                 preserveAspectRatio=True,
                 mask="auto",
             )
@@ -588,9 +583,9 @@ def generate_pdf(payload: dict, qr_path: Path) -> Path:
             pass
 
     c.setFont("Helvetica-Bold", 8.5)
-    c.drawString(147 * mm, 12 * mm, PRESIDENT_NAME)
+    c.drawString(145 * mm, 12 * mm, PRESIDENT_NAME)
     c.setFont("Helvetica", 7.8)
-    c.drawString(147 * mm, 8 * mm, PRESIDENT_TITLE)
+    c.drawString(145 * mm, 8 * mm, PRESIDENT_TITLE)
 
     c.save()
     return out
@@ -619,8 +614,6 @@ def _wrap_text(text: str, width: int) -> list[str]:
 
 
 def generate_all(payload: dict):
-    # Recalcul systématique de la signature pour garantir
-    # une parfaite cohérence entre QR, PDF et DOCX.
     payload["signature_token"] = generate_signature(
         payload["reference"],
         payload["mandate_uid"],
